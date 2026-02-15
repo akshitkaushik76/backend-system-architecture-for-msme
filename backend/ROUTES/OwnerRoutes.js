@@ -1,0 +1,14 @@
+const express = require('express');
+const OwnerController = require('./../CONTROLLERS/OwnerController');
+const router = express.Router();
+const AuthController = require('./../AUTHCONTROLLERS/Authcontroller');
+router.route('/RegisterOwner').post(OwnerController.OwnerRegistration);
+router.route('/getAllOwner').get(OwnerController.getAllOwners);
+router.route('/updateOwner/:phoneNumber').patch(AuthController.protectOwner,OwnerController.patchOwner);
+router.route('/newBuisness/:code').post(AuthController.protectOwner,OwnerController.createNewBuisness);
+// router.route('/getbuisness').get(OwnerController.BuisnessInfo);
+router.route('/loginPayload').post(OwnerController.loginpayload);
+router.route('/BuisnessInfo/:BuisnessCode').get(AuthController.protectOwner,OwnerController.findBuisnessAnalytics);
+router.route('/Organisation_analytics/:OrganisationCode').get(OwnerController.Organizationanalytics);
+router.route('/getActiveCustomers/:CreationCode').get(OwnerController.getActiveCustomers);
+module.exports = router;
