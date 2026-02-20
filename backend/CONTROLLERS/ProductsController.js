@@ -117,25 +117,34 @@ exports.updateProduct = async(req,res,next)=>{
 }
 exports.getProduct = async(req,res,next)=>{
     try{
-        const code = req.params.productcode;
-        const product  = await Product.findOne({productcode:code});
-        if(!product) {
+        const code = req.params.productCode;
+        const buisnessCode = req.params.businessCode;
+
+        const product_info = await Product.findOne({
+            productcode: code,          
+            BuisnessCode: buisnessCode
+        });
+
+        if(!product_info) {
             return res.status(404).json({
                 status:'failure',
-                message:'the product is not added'
+                message:'the product with this business does not exist'
             })
         }
+
         res.status(200).json({
             status:'success',
-            product
+            product_info
         })
-    }catch(error) {
+
+    } catch(error) {
         res.status(500).json({
             status:'failure',
             error:error.message
         })
     }
 }
+
 exports.getAllProduct = async(req,res,next)=>{
     try{
         const BusinessCode = req.params.BuisnessCode;

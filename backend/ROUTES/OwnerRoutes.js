@@ -9,6 +9,6 @@ router.route('/newBuisness/:code').post(AuthController.protectOwner,OwnerControl
 // router.route('/getbuisness').get(OwnerController.BuisnessInfo);
 router.route('/loginPayload').post(OwnerController.loginpayload);
 router.route('/BuisnessInfo/:BuisnessCode').get(AuthController.protectOwner,OwnerController.findBuisnessAnalytics);
-router.route('/Organisation_analytics/:OrganisationCode').get(OwnerController.Organizationanalytics);
-router.route('/getActiveCustomers/:CreationCode').get(OwnerController.getActiveCustomers);
+router.route('/Organisation_analytics/:OrganisationCode').get(AuthController.protectOwner,OwnerController.Organizationanalytics);
+router.route('/getActiveCustomers/:CreationCode').get(AuthController.protectOwner,OwnerController.getActiveCustomers);
 module.exports = router;

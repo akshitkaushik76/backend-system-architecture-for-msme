@@ -13,6 +13,10 @@ const CreditRouter = require('./ROUTES/CreditRouter');
 const ProductRouter = require('./ROUTES/ProductRouter');
 const salesRouter = require('./ROUTES/SalesRouter');
 const AuthCustomerRouter = require('./AUTHROUTERS/authrouter');
+const predictionRoutes = require('./ROUTES/predictionRoutes');
+const mlDataRoutes = require('./ROUTES/ml.data.routes');
+const mlroutes = require('./ROUTES/mlRoutes');
+// const newPredictRestock = require('./ROUTES/mlroutes');
 const mongoose = require('mongoose');
 // const { applyTimestamps } = require('./MODELS/Owner');
 console.log(process.env.PORT);
@@ -23,6 +27,10 @@ app.use('/ilba/',CreditRouter);
 app.use('/ilba',ProductRouter);
 app.use('/ilba',salesRouter);
 app.use('/ilba',AuthCustomerRouter);
+app.use('/ilba/predict',predictionRoutes);
+app.use('/ilba',mlDataRoutes);
+app.use('/ilba',mlroutes);
+// app.use('/ilba',newPredictRestock);
 mongoose.connect(process.env.CONNECTION_STRING,{
 }).then(()=>{
     console.log('connected to the database through port ',process.env.PORT);
