@@ -4,7 +4,7 @@ const router = express.Router();
 const AuthController= require('./../AUTHCONTROLLERS/Authcontroller');
 router.route('/addProduct/:BuisnessCode').post(AuthController.protectOwner,ProductController.addProduct);
 // router.route('/updateProduct/:Name/:code').patch(ProductController.patchProduct);
-router.route('/updateProduct/:productcode/:OrganisationCode').patch(AuthController.protectOwner,ProductController.updateProduct);
+router.route('/updateProduct/:productcode/:BuisnessCode/:OrganisationCode').patch(AuthController.protectOwner,ProductController.updateProduct);
 router.route('/getProduct/:productCode/:businessCode').get(AuthController.protectOwner,ProductController.getProduct);
 router.route('/getAllProduct/:BuisnessCode').get(AuthController.protectOwner,ProductController.getAllProduct);
 module.exports = router;

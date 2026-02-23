@@ -156,8 +156,8 @@ def restock_decision(business_code, product_code):
 
     df = get_sales_history(business_code, product_code)
 
-    # model = train_forecast_model(df)
-    model = load_or_train_model(business_code, product_code, df)
+    model = train_forecast_model(df)
+    # model = load_or_train_model(business_code, product_code, df)
 
     forecast = forecast_next_days(model, 7)
 

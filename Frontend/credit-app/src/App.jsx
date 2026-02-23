@@ -11,14 +11,14 @@ import ProfitPerDay from "./pages/ProfitPerDay";
 import CreditManager from "./pages/CreditManager";
 import CustomerLogin from "./pages/CustomerRegister";
 import BusinessSales from "./pages/BusinessSales";
-
+import LandingPage from "./pages/LandingPage";
 function App() {
   return (
     <Routes>
       <Route path="/signupowner" element={<Signup />} />
-      <Route path="/" element={<LoginOwner />} />
+      <Route path="/loginowner" element={<LoginOwner />} />
       <Route path="/dashboard" element={<OwnerDashboard />} />
-
+      <Route path="/" element={<LandingPage />} />
       {/* Business Dashboard */}
       <Route
         path="/business/:businessCode"

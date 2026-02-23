@@ -59,92 +59,141 @@ exports.addProduct = async(req,res,next)=>{
 
 exports.updateProduct = async(req,res,next)=>{
     try{
-        const productCode = req.params.productcode;
-        const OrganisationCode = req.params.OrganisationCode;
+        const {productcode,BuisnessCode,OrganisationCode} = req.params;
+
         const owner = await Owner.findOne({OrganisationCode});
         if(!owner) {
             return res.status(404).json({
-                status:'failure',
-                message:'invalid owner code'
+                status:"failure",
+                message:"owner with the organization was not found"
             })
-        } 
-        const updatedFields = {};
-        let newCostPrice;
-        
-        if(req.body.sellingPrice!== undefined) updatedFields.sellingPrice = req.body.sellingPrice;
-        if(req.body.costPrice !== undefined) {
-            updatedFields.costPrice = req.body.costPrice;
-            newCostPrice = req.body.costPrice;
         }
-        if(req.body.quantity !== undefined) {
-            updatedFields.quantity = req.body.quantity;
-            const prod = await Product.findOne({productcode:productCode});
-            if(newCostPrice !== undefined) {
-                updatedFields.totalCostSpent = prod.totalCostSpent+req.body.quantity*newCostPrice;
-            }
-        }
-        updatedFields.updationChanges = TimeFunction();
-
-        const product  = await Product.findOneAndUpdate(
-            {productcode:productCode},
-            {$set:updatedFields},
-            {new:true,runValidators:true}
-        );
+        const product = await Product.findOne({productcode,BuisnessCode});
         if(!product) {
             return res.status(404).json({
-                status:'failure',
-                message:`the product with the id :${productCode} does not exist!`
+                status:"failure",
+                message:"product with the business was not found"
             })
         }
-       if(owner.email) {
-        await transporter.sendMail({
-            from:process.env.email_user,
-            to:owner.email,
-            subject:'UPDATED PRODUCT ALERT',
-            text:`Dear ${owner.Name}\n\nThe product with product id: ${product.productcode} is updated.n\nIf it was not you then please mail us at devsaccuflow@gmail.com`
-        })
-       }
-       res.status(200).json({
-        status:'success',
-        product
-       })
-    } catch(error) {
-        res.status(500).json({
-            status:'failure',
-            error:error.message
-        })
-    }
-}
-exports.getProduct = async(req,res,next)=>{
-    try{
-        const code = req.params.productCode;
-        const buisnessCode = req.params.businessCode;
+        if(product.costPrice !== undefined) {
+            product.costPrice = req.body.costPrice
+        }
+        if(product.sellingPrice !== undefined) {
+            product.sellingPrice = req.body.sellingPrice
+        }
+        if(req.body.quantity !== undefined) {
+            const oldQty = product.quantity;
+            const newQty = Number(req.body.quantity);
 
-        const product_info = await Product.findOne({
-            productcode: code,          
-            BuisnessCode: buisnessCode
-        });
-
-        if(!product_info) {
-            return res.status(404).json({
-                status:'failure',
-                message:'the product with this business does not exist'
+            const addedUnits = newQty - oldQty;
+            if(addedUnits) {
+                const cost = req.body.costPrice || product.costPrice;
+                product.totalCostSpent = (product.totalCostSpent || 0) + addedUnits*cost;
+            }
+            product.quantity = newQty;
+        }
+        product.updationChanges = TimeFunction();
+        if(owner.email) {
+            await transporter.sendMail({
+                from:process.env.email_user,
+                to:owner.email,
+                subject:'SUCCESSFULL UPDATION OF PRODUCT',
+                text:`Dear ${owner.Name}
+                The product with product id: ${product.productcode} was updated.
+                If it was not you then please mail us at devsaccuflow@gmail.com`
             })
         }
-
         res.status(200).json({
-            status:'success',
-            product_info
+            status:"success",
+            message:"product updated successfully",
+            product
         })
-
     } catch(error) {
         res.status(500).json({
             status:'failure',
             error:error.message
         })
     }
-}
 
+}
+// exports.getProduct = async(req,res,next)=>{
+//     try{
+//         const code = req.params.productCode;
+//         const buisnessCode = req.params.businessCode;
+
+//         const product_info = await Product.findOne({
+//             productcode: code,          
+//             BuisnessCode: buisnessCode
+//         });
+
+//         if(!product_info) {
+//             return res.status(404).json({
+//                 status:'failure',
+//                 message:'the product with this business does not exist'
+//             })
+//         }
+
+//         res.status(200).json({
+//             status:'success',
+//             product_info
+//         })
+
+//     } catch(error) {
+//         res.status(500).json({
+//             status:'failure',
+//             error:error.message
+//         })
+//     }
+// }
+// controllers/ProductController.js
+
+
+
+exports.getProduct = async (req, res, next) => {
+  try {
+    // 1️⃣ Read params safely
+    let { productCode, businessCode } = req.params;
+
+    if (!productCode || !businessCode) {
+      return res.status(400).json({
+        status: "failure",
+        message: "Product code and business code are required",
+      });
+    }
+
+    // 2️⃣ Clean the values (VERY IMPORTANT)
+    productCode = productCode.trim();
+    businessCode = businessCode.trim();
+
+    // 3️⃣ Case-insensitive search (prevents 'Maggi10' vs 'maggi10' issue)
+    const product_info = await Product.findOne({
+      productcode: { $regex: new RegExp(`^${productCode}$`, "i") },
+      BuisnessCode: businessCode,
+    });
+
+    // 4️⃣ If product not found
+    if (!product_info) {
+      return res.status(404).json({
+        status: "failure",
+        message: "Product not found in this business",
+      });
+    }
+
+    // 5️⃣ Success
+    res.status(200).json({
+      status: "success",
+      product_info,
+    });
+
+  } catch (error) {
+    console.error("GET PRODUCT ERROR:", error);
+
+    res.status(500).json({
+      status: "failure",
+      message: "Server error while fetching product",
+    });
+  }
+};
 exports.getAllProduct = async(req,res,next)=>{
     try{
         const BusinessCode = req.params.BuisnessCode;

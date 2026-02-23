@@ -1,261 +1,4 @@
-// import { useEffect, useState } from "react";
-// import { useParams, useNavigate } from "react-router-dom";
-
-// const BusinessDashboard = () => {
-//   const { businessCode } = useParams();
-//   const navigate = useNavigate();
-
-//   const [analytics, setAnalytics] = useState(null);
-//   const [loading, setLoading] = useState(true);
-//   const [error, setError] = useState("");
-
-//   const owner = JSON.parse(localStorage.getItem("ownerData"));
-//   const organisationCode = owner?.OrganisationCode;
-
-//   useEffect(() => {
-//     const token = localStorage.getItem("ownerToken");
-//     if (!token) {
-//       navigate("/");
-//       return;
-//     }
-
-//     setLoading(true);
-//     setAnalytics(null);
-//     setError("");
-
-//     const fetchAnalytics = async () => {
-//       try {
-//         const res = await fetch(
-//           `http://localhost:7600/ilba/BuisnessInfo/${businessCode}`,
-//           {
-//             headers: {
-//               Authorization: `Bearer ${token}`,
-//             },
-//           }
-//         );
-
-//         const data = await res.json();
-
-//         if (res.ok && data.status === "success") {
-//           setAnalytics(data);
-//         } else {
-//           setError(data.message || "Failed to load analytics");
-//         }
-//       } catch (err) {
-//         setError(err.message || "Server error");
-//       } finally {
-//         setLoading(false);
-//       }
-//     };
-
-//     fetchAnalytics();
-//   }, [businessCode, navigate]);
-
-//   if (loading)
-//     return <p style={{ padding: "30px" }}>Loading business dashboard...</p>;
-
-//   if (error)
-//     return <p style={{ color: "red", padding: "30px" }}>{error}</p>;
-
-//   return (
-//     <div style={{ minHeight: "100vh", background: "#f1f5f9", padding: "30px" }}>
-//       <button
-//         onClick={() => navigate("/dashboard")}
-//         style={{
-//           marginBottom: "20px",
-//           padding: "10px 16px",
-//           background: "#1e293b",
-//           color: "#fff",
-//           border: "none",
-//           borderRadius: "8px",
-//           cursor: "pointer",
-//         }}
-//       >
-//         ⬅ Back
-//       </button>
-
-//       <div
-//         style={{
-//           background: "#fff",
-//           borderRadius: "14px",
-//           padding: "25px",
-//           maxWidth: "900px",
-//           margin: "0 auto",
-//         }}
-//       >
-//         <h2>Business Dashboard</h2>
-
-//         <p>
-//           <strong>Business Code:</strong> {businessCode}
-//         </p>
-
-//         <div
-//           style={{
-//             background: "#e0f2fe",
-//             padding: "20px",
-//             borderRadius: "12px",
-//             marginBottom: "20px",
-//           }}
-//         >
-//           <p>Total Credit Transactions</p>
-//           <h3>{analytics.TotalCreditTransactions}</h3>
-//         </div>
-
-//         {/* ADD CREDIT BUTTON */}
-//         <button
-//           onClick={() =>
-//             navigate(`/add-credit/${organisationCode}/${businessCode}`)
-//           }
-//           style={{
-//             padding: "12px 20px",
-//             background: "#16a34a",
-//             color: "#fff",
-//             border: "none",
-//             borderRadius: "10px",
-//             cursor: "pointer",
-//             marginBottom: "30px",
-//           }}
-//         >
-//           ➕ Add Credit
-//         </button>
-//          {/* ADD PRODUCT BUTTON */}
-// <button
-//   onClick={() => navigate(`/business/${businessCode}/add-product`)}
-//   style={{
-//     padding: "12px 20px",
-//     background: "#2563eb",
-//     color: "#fff",
-//     border: "none",
-//     borderRadius: "10px",
-//     cursor: "pointer",
-//     marginBottom: "30px",
-//     marginLeft: "12px",
-//   }}
-// >
-//   ➕ Add Product
-// </button>
-// <button
-//   onClick={() =>
-//     navigate(
-//       `/business/${organisationCode}/${businessCode}/add-sale`
-//     )
-//   }
-//   style={{
-//     padding: "12px 20px",
-//     background: "#dc2626",
-//     color: "#fff",
-//     border: "none",
-//     borderRadius: "10px",
-//     cursor: "pointer",
-//      marginLeft: "12px"
-//   }}
-// >
-//   ➕ Create Sale
-// </button>
-// <button
-//   onClick={() =>
-//     navigate(`/business/${businessCode}/settle-credit`)
-//   }
-//   style={{
-//     padding: "12px 20px",
-//     background: "#16a34a",
-//     color: "#fff",
-//     border: "none",
-//     borderRadius: "10px",
-//     cursor: "pointer",
-//     marginLeft: "12px"
-//   }}
-// >
-//   💳 Settle Credit
-// </button>
-
-// <button
-//   onClick={() =>
-//     navigate(`/business/${organisationCode}/${businessCode}/profit-per-day`)
-//   }
-//   style={{
-//     padding: "12px 20px",
-//     background: "#7c3aed",
-//     color: "#fff",
-//     border: "none",
-//     borderRadius: "10px",
-//     cursor: "pointer",
-//     marginLeft: "12px",
-//   }}
-// >
-//   📈 Profit Per Day
-// </button>
-
-// <button
-//   onClick={() =>
-//     navigate(`/business/${organisationCode}/${businessCode}/credit-manager`)
-//   }
-//   style={{
-//     padding: "12px 20px",
-//     background: "#f59e0b",
-//     color: "#fff",
-//     border: "none",
-//     borderRadius: "10px",
-//     cursor: "pointer",
-//     marginLeft: "12px",
-//     marginBottom: "30px"
-//   }}
-// >
-//   💳 Credit Manager
-// </button>
-
-//        <button
-//   onClick={() => navigate(`/business/${businessCode}/sales`)}
-//   style={{
-//     padding: "12px 18px",
-//     borderRadius: "10px",
-//     border: "none",
-//     background: "#0f766e",
-//     color: "#fff",
-//     fontWeight: "600",
-//     cursor: "pointer",
-//     boxShadow: "0 6px 14px rgba(0,0,0,0.15)",
-//   }}
-// >
-//   📊 View Sales
-// </button>
-
-       
-//         <h3>Products in this Business</h3>
-
-//         {analytics.products.length === 0 ? (
-//           <p>No products found.</p>
-//         ) : (
-//           <div
-//             style={{
-//               display: "grid",
-//               gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
-//               gap: "15px",
-//             }}
-//           >
-//             {analytics.products.map((p, i) => (
-//               <div
-//                 key={i}
-//                 style={{
-//                   padding: "14px",
-//                   background: "#f8fafc",
-//                   borderRadius: "10px",
-//                   textAlign: "center",
-//                 }}
-//               >
-//                 {p}
-//               </div>
-//             ))}
-//           </div>
-//         )}
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default BusinessDashboard;
 import "./dashboard.css";
-
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -268,17 +11,31 @@ const BusinessDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [productLoading, setProductLoading] = useState(false);
+  const [productError, setProductError] = useState("");
+
+  const [editMode, setEditMode] = useState(false);
+  const [editData, setEditData] = useState({
+    sellingPrice: "",
+    costPrice: "",
+    quantity: ""
+  });
+
   const [prediction, setPrediction] = useState(null);
   const [predictingProduct, setPredictingProduct] = useState(null);
   const [predictError, setPredictError] = useState("");
 
+  const [toast, setToast] = useState({ show: false, message: "" });
+  const [sidebarOpen,setSidebarOpen] = useState(true);
+  const [isMobile,setIsMobile] = useState(window.innerWidth < 900);
   const owner = JSON.parse(localStorage.getItem("ownerData"));
   const organisationCode = owner?.OrganisationCode;
 
-  /* ================= FETCH BUSINESS DATA ================= */
+  /* ================= FETCH DASHBOARD ================= */
   useEffect(() => {
     const token = localStorage.getItem("ownerToken");
-
     if (!token) {
       navigate("/");
       return;
@@ -287,24 +44,19 @@ const BusinessDashboard = () => {
     const fetchAnalytics = async () => {
       try {
         setLoading(true);
-        setError("");
-
         const res = await fetch(
           `http://localhost:7600/ilba/BuisnessInfo/${businessCode}`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
+          { headers: { Authorization: `Bearer ${token}` } }
         );
 
         const data = await res.json();
-
         if (res.ok && data.status === "success") {
           setAnalytics(data);
         } else {
-          setError(data.message || "Failed to load business data");
+          setError(data.message || "Failed to load dashboard");
         }
-      } catch (err) {
-        setError("Server error while loading dashboard",err);
+      } catch {
+        setError("Server error");
       } finally {
         setLoading(false);
       }
@@ -313,217 +65,331 @@ const BusinessDashboard = () => {
     fetchAnalytics();
   }, [businessCode, navigate]);
 
-  /* ================= RESTOCK PREDICTION ================= */
-  // const predictRestock = async (productCode) => {
-  //   try {
-  //     setPredictError("");
-  //     setPrediction(null);
-  //     setPredictingProduct(productCode);
 
-  //     const token = localStorage.getItem("ownerToken");
+  useEffect(()=>{
+    const handleResize = ()=>{
+      const mobile = window.innerWidth < 900;
+      setIsMobile(mobile);
 
-  //     const res = await fetch(
-  //       `http://localhost:7600/ilba/predict/restock/${businessCode}/${productCode}`,
-  //       {
-  //         headers: { Authorization: `Bearer ${token}` },
-  //       }
-  //     );
+      if(mobile) setSidebarOpen(false);
+      else setSidebarOpen(true);
+    };
+    window.addEventListener("resize",handleResize);
+    return ()=> window.removeEventListener("resize",handleResize);
+  },[]);
+  /* ================= OPEN PRODUCT ================= */
+  const openProductDrawer = async (productCode) => {
+    try {
+      setDrawerOpen(true);
+      setProductLoading(true);
+      const token = localStorage.getItem("ownerToken");
 
-  //     const data = await res.json();
+      const res = await fetch(
+        `http://localhost:7600/ilba/getProduct/${productCode}/${businessCode}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
-  //     if (res.ok && data.status === "success") {
-  //       setPrediction({
-  //         product: productCode,
-  //         result: data.prediction,
-  //       });
-  //     } else {
-  //       setPredictError(data.message || "Prediction failed");
-  //     }
-  //   } catch {
-  //     setPredictError("Server error while predicting");
-  //   } finally {
-  //     setPredictingProduct(null);
-  //   }
-  // };
+      const data = await res.json();
 
-const predictRestock = async (productCode) => {
+      if (res.ok && data.status === "success") {
+        setSelectedProduct(data.product_info);
+      } else {
+        setProductError(data.message);
+      }
+    } catch {
+      setProductError("Server not reachable");
+    } finally {
+      setProductLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (selectedProduct) {
+      setEditData({
+        sellingPrice: selectedProduct.sellingPrice || "",
+        costPrice: selectedProduct.costPrice || "",
+        quantity: selectedProduct.quantity || ""
+      });
+    }
+  }, [selectedProduct]);
+
+  const handleChange = (e) => {
+    setEditData({ ...editData, [e.target.name]: e.target.value });
+  };
+
+  /* ================= UPDATE PRODUCT ================= */
+  const updateProduct = async () => {
   try {
-    setPredictError("");
-    setPrediction(null);
-    setPredictingProduct(productCode);
-
     const token = localStorage.getItem("ownerToken");
 
     const res = await fetch(
-      `http://localhost:7600/ilba/restock-check/${businessCode}/${productCode}`,
+      `http://localhost:7600/ilba/updateProduct/${selectedProduct.productcode}/${businessCode}/${organisationCode}`,
       {
-        headers: { Authorization: `Bearer ${token}` },
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          sellingPrice: Number(editData.sellingPrice),
+          costPrice: Number(editData.costPrice),
+          quantity: Number(editData.quantity),
+        }),
       }
     );
 
     const data = await res.json();
 
-    // NEW RESPONSE STRUCTURE
-    if (res.ok && data.success) {
-      setPrediction({
-        product: productCode,
-        result: data.data,   // <-- IMPORTANT CHANGE
-      });
+    if (res.ok && data.status === "success") {
+      setSelectedProduct(data.product);
+      setEditMode(false);
+
+      setToast({ show: true, message: "✅ Product Updated Successfully" });
+
+      setTimeout(() => {
+        setToast({ show: false, message: "" });
+      }, 2500);
     } else {
-      setPredictError(data.message || "AI prediction failed");
+      setToast({ show: true, message: data.message });
     }
   } catch (err) {
-    setPredictError("ML server not reachable",err);
-  } finally {
-    setPredictingProduct(null);
+    setToast({ show: true, message: "Server error while updating" },err);
   }
 };
 
-  /* ================= LOADING UI ================= */
+  /* ================= PREDICTION ================= */
+  const predictRestock = async (productCode) => {
+    try {
+      setPredictingProduct(productCode);
+      const token = localStorage.getItem("ownerToken");
+
+      const res = await fetch(
+        `http://localhost:7600/ilba/restock-check/${businessCode}/${productCode}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        setPrediction({ product: productCode, result: data.data });
+      } else {
+        setPredictError(data.message);
+      }
+    } catch {
+      setPredictError("ML server not reachable");
+    } finally {
+      setPredictingProduct(null);
+    }
+  };
+
   if (loading)
     return (
       <div className="center">
-        <motion.div
-          className="loader"
-          animate={{ rotate: 360 }}
-          transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
-        />
-        <p>Loading business dashboard...</p>
+        <div className="loader" />
+        <p>Loading Dashboard...</p>
       </div>
     );
 
-  if (error)
-    return <p className="error">{error}</p>;
+  if (error) return <p className="error">{error}</p>;
 
   return (
-    <div className="page">
+    <div className="dashboardLayout">
 
-      {/* BACK BUTTON */}
-      <motion.button
-        whileHover={{ scale: 1.08 }}
-        whileTap={{ scale: 0.95 }}
-        className="backBtn"
-        onClick={() => navigate("/dashboard")}
-      >
-        ⬅ Back
-      </motion.button>
+      {isMobile && sidebarOpen && (
+  <div
+    className="sidebarOverlay"
+    onClick={() => setSidebarOpen(false)}
+  />
+)}
 
-      {/* MAIN CARD */}
-      <motion.div
-        className="card"
-        initial={{ opacity: 0, y: 35 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <h2 className="title">Business Dashboard</h2>
-        <p className="sub">Business Code: {businessCode}</p>
+      {/* SIDEBAR */}
+    <motion.div className = {`sidebar ${sidebarOpen ? "open":"closed"} ${isMobile ? "mobile":""}`} initial = {false} animate={{x:sidebarOpen?0:-260}} transition={{type:"spring",stiffness:260,damping:30}}>
+  <h2>FINVENTORY</h2>
 
-        {/* CREDIT BOX */}
-        <motion.div
-          className="creditBox"
-          whileHover={{ scale: 1.03 }}
-        >
-          <p>Total Credit Transactions</p>
-          <h1>{analytics?.TotalCreditTransactions || 0}</h1>
-        </motion.div>
+  <button onClick={() => navigate("/dashboard")}>
+    🏠 Home
+  </button>
 
-        {/* ACTION BUTTONS */}
-        <div className="actions">
-          <Action text="➕ Add Credit" color="#22c55e"
-            click={() => navigate(`/add-credit/${organisationCode}/${businessCode}`)} />
+  <button onClick={() => navigate(`/business/${businessCode}/sales`)}>
+    📊 Sales
+  </button>
 
-          <Action text="➕ Add Product" color="#3b82f6"
-            click={() => navigate(`/business/${businessCode}/add-product`)} />
+  <button onClick={() =>
+    navigate(`/business/${organisationCode}/${businessCode}/profit-per-day`)
+  }>
+    📈 Profit
+  </button>
 
-          <Action text="➕ Create Sale" color="#ef4444"
-            click={() => navigate(`/business/${organisationCode}/${businessCode}/add-sale`)} />
+  <button onClick={() =>
+    navigate(`/business/${organisationCode}/${businessCode}/credit-manager`)
+  }>
+    💳 Credit Manager
+  </button>
 
-          <Action text="💳 Settle Credit" color="#10b981"
-            click={() => navigate(`/business/${businessCode}/settle-credit`)} />
+  {/* ✅ CORRECT */}
+  <button onClick={() =>
+    navigate(`/add-credit/${organisationCode}/${businessCode}`)
+  }>
+    ➕ Add Credit
+  </button>
 
-          <Action text="📈 Profit Per Day" color="#8b5cf6"
-            click={() => navigate(`/business/${organisationCode}/${businessCode}/profit-per-day`)} />
+  {/* ✅ CORRECT (THIS WAS WRONG BEFORE) */}
+  <button onClick={() =>
+    navigate(`/business/${businessCode}/settle-credit`)
+  }>
+    💰 Settle Credit
+  </button>
 
-          <Action text="💳 Credit Manager" color="#f59e0b"
-            click={() => navigate(`/business/${organisationCode}/${businessCode}/credit-manager`)} />
+  {/* ✅ CORRECT */}
+  <button onClick={() =>
+    navigate(`/business/${organisationCode}/${businessCode}/add-sale`)
+  }>
+    🛒 Add Sale
+  </button>
 
-          <Action text="📊 View Sales" color="#0ea5e9"
-            click={() => navigate(`/business/${businessCode}/sales`)} />
+  {/* ✅ CORRECT (THIS WAS WRONG BEFORE) */}
+  <button onClick={() =>
+    navigate(`/business/${businessCode}/add-product`)
+  }>
+    📦 Add Product
+  </button>
+</motion.div>
+
+      {/* MAIN */}
+      <div className="mainContent">
+
+        <div className="topbar">
+          <button
+  className="hamburger"
+  onClick={() => setSidebarOpen(!sidebarOpen)}
+>
+  ☰
+</button>
+          <h1>Business Dashboard</h1>
+          <div className="businessCode">Code: {businessCode}</div>
         </div>
 
-        {/* PRODUCTS */}
-        <h3 className="productTitle">Products</h3>
+        <div className="statsGrid">
+          <div className="statCard blue">
+            <p>Total Credit Transactions</p>
+            <h2>{analytics?.TotalCreditTransactions || 0}</h2>
+          </div>
+          <div className="statCard purple">
+            <p>Total Products</p>
+            <h2>{analytics?.products?.length || 0}</h2>
+          </div>
+        </div>
+
+        <h2 className="sectionTitle">Inventory</h2>
 
         <div className="productGrid">
           {analytics?.products?.map((p, i) => (
             <motion.div
               key={i}
               className="productCard"
-              whileHover={{ y: -6, scale: 1.04 }}
+              whileHover={{ y: -5 }}
+              onClick={() => openProductDrawer(p)}
             >
-              <h4>{p}</h4>
-
-              <motion.button
-                whileTap={{ scale: 0.9 }}
-                onClick={() => predictRestock(p)}
-                disabled={predictingProduct === p}
+              <h3>{p}</h3>
+              <button
                 className="predictBtn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  predictRestock(p);
+                }}
               >
-                {predictingProduct === p ? "Analyzing Sales Pattern..." : "🔮 Predict Restock"}
-              </motion.button>
+                {predictingProduct === p ? "Analyzing..." : "🔮 Predict Restock"}
+              </button>
             </motion.div>
           ))}
         </div>
 
-        {/* PREDICTION RESULT */}
         <AnimatePresence>
           {prediction && (
             <motion.div
-              className="prediction"
-              initial={{ opacity: 0, y: 40 }}
+              className="predictionPanel"
+              initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
             >
-              <h3>🔮 AI Stock Prediction</h3>
-
+              <h3>AI Prediction</h3>
               <p><b>Product:</b> {prediction.product}</p>
-              <p><b>AI Message:</b> {prediction.result.message}</p>
-               <p><b>Current Stock:</b> {prediction.result.currentStock}</p>
-               <p><b>Expected 7-Day Demand:</b> {prediction.result.expectedConsumptionNext7Days.toFixed(2)}</p>
-              {prediction.result.prediction === 1 ? (
-                <motion.p
-                  className="danger"
-                  animate={{ scale: [1, 1.08, 1] }}
-                  transition={{ repeat: Infinity, duration: 1.2 }}
-                >
-                  🚨 RESTOCK REQUIRED
-                </motion.p>
-              ) : (
-                <p className="safe">✅ Stock is Safe</p>
-              )}
+              <p>{prediction.result.message}</p>
+              <p>Stock: {prediction.result.currentStock}</p>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {predictError && <p className="error">{predictError}</p>}
-      </motion.div>
+      </div>
+
+      {/* PRODUCT MODAL */}
+      <AnimatePresence>
+        {drawerOpen && selectedProduct && (
+          <>
+            <div className="modalBackdrop" onClick={() => setDrawerOpen(false)} />
+            <motion.div
+              className="productModal"
+              initial={{ scale: 0.7, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.7, opacity: 0 }}
+            >
+              <h2>{selectedProduct.productName}</h2>
+
+              <div className="infoRow">
+                <span>Selling Price</span>
+                {editMode ? (
+                  <input name="sellingPrice" value={editData.sellingPrice} onChange={handleChange} />
+                ) : (
+                  <b>₹ {selectedProduct.sellingPrice}</b>
+                )}
+              </div>
+
+              <div className="infoRow">
+                <span>Cost Price</span>
+                {editMode ? (
+                  <input name="costPrice" value={editData.costPrice} onChange={handleChange} />
+                ) : (
+                  <b>₹ {selectedProduct.costPrice}</b>
+                )}
+              </div>
+
+              <div className="infoRow">
+                <span>Quantity</span>
+                {editMode ? (
+                  <input name="quantity" value={editData.quantity} onChange={handleChange} />
+                ) : (
+                  <b>{selectedProduct.quantity}</b>
+                )}
+              </div>
+
+              {!editMode ? (
+                <button className="editBtn" onClick={() => setEditMode(true)}>Edit</button>
+              ) : (
+                <>
+                  <button className="saveBtn" onClick={updateProduct}>Save</button>
+                  <button className="cancelBtn" onClick={() => setEditMode(false)}>Cancel</button>
+                </>
+              )}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {toast.show && (
+          <motion.div
+            className="toast"
+            initial={{ y: 80, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 80, opacity: 0 }}
+          >
+            {toast.message}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
     </div>
   );
 };
 
-const Action = ({ text, color, click }) => (
-  <motion.button
-    whileHover={{ scale: 1.06 }}
-    whileTap={{ scale: 0.95 }}
-    style={{ background: color }}
-    className="actionBtn"
-    onClick={click}
-  >
-    {text}
-  </motion.button>
-);
-
 export default BusinessDashboard;
-
-
-

@@ -1,0 +1,120 @@
+.landing {
+  font-family: 'Segoe UI', sans-serif;
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  color: white;
+  overflow-x: hidden;
+}
+
+/* HERO */
+.hero {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  text-align: center;
+  padding: 40px;
+}
+
+.heroContent h1 {
+  font-size: 3rem;
+  margin-bottom: 20px;
+}
+
+.heroContent p {
+  max-width: 600px;
+  margin: auto;
+  opacity: 0.8;
+}
+
+.heroButtons {
+  margin-top: 30px;
+}
+
+.heroButtons button {
+  margin: 10px;
+  padding: 12px 22px;
+  border-radius: 30px;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.ownerBtn {
+  background: #3b82f6;
+}
+
+.customerBtn {
+  background: #10b981;
+}
+
+.heroButtons button:hover {
+  transform: scale(1.1);
+}
+
+.floatingCircle {
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, #3b82f6, transparent);
+  position: absolute;
+  right: 10%;
+  border-radius: 50%;
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+/* FEATURES */
+.features {
+  padding: 80px 40px;
+  text-align: center;
+}
+
+.featureGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 30px;
+  margin-top: 40px;
+}
+
+.featureCard {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 30px;
+  border-radius: 15px;
+  backdrop-filter: blur(10px);
+}
+
+.featureCard .icon {
+  font-size: 2rem;
+}
+
+/* CTA */
+.cta {
+  padding: 80px 20px;
+  text-align: center;
+  background: #0f172a;
+}
+
+.ctaButtons button {
+  margin: 10px;
+  padding: 12px 24px;
+  border-radius: 25px;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+  background: #6366f1;
+  color: white;
+}
+
+.ctaButtons button:hover {
+  transform: scale(1.1);
+}
+
+/* FOOTER */
+footer {
+  text-align: center;
+  padding: 20px;
+  background: #020617;
+  font-size: 0.9rem;
+  opacity: 0.6;
+}
