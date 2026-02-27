@@ -30,6 +30,25 @@ const BusinessDashboard = () => {
   const [toast, setToast] = useState({ show: false, message: "" });
   const [sidebarOpen,setSidebarOpen] = useState(true);
   const [isMobile,setIsMobile] = useState(window.innerWidth < 900);
+
+  const [customers, setCustomers] = useState([]);
+  const [customerModal, setCustomerModal] = useState(false);
+  const [customerLoading, setCustomerLoading] = useState(false);
+  const [customerError, setCustomerError] = useState("");
+
+
+  const [activeCustomerCount,setActiveCustomerCount] = useState(0);
+
+  const [search,setSearch] = useState("");
+  const [suggestions,setSuggestions] = useState([]);
+  const [showSuggestions,setShowSuggestions] = useState(false);
+  const [searchLoading,setSearchLoading] = useState(false);
+  const [currentPage,setCurrentPage] = useState(1);
+  const productsPerPage = 10;
+  const [highlightedProduct,setHighlightedProduct] = useState(null);
+  const [filteredProduct,setFilterProduct] = useState(null);
+
+
   const owner = JSON.parse(localStorage.getItem("ownerData"));
   const organisationCode = owner?.OrganisationCode;
 
@@ -65,6 +84,33 @@ const BusinessDashboard = () => {
     fetchAnalytics();
   }, [businessCode, navigate]);
 
+  /* ================= FETCH ACTIVE CUSTOMER COUNT ================= */
+useEffect(() => {
+  const fetchCustomerCount = async () => {
+    try {
+      const token = localStorage.getItem("ownerToken");
+
+      const res = await fetch(
+        `http://localhost:7600/ilba/getCustomerinfo/${businessCode}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = await res.json();
+
+      if (res.ok && data.status === "success") {
+        setActiveCustomerCount(data.customers.length);
+      }
+    } catch (err) {
+      console.log("Customer count load failed",err);
+    }
+  };
+
+  fetchCustomerCount();
+}, [businessCode]);
 
   useEffect(()=>{
     const handleResize = ()=>{
@@ -77,6 +123,42 @@ const BusinessDashboard = () => {
     window.addEventListener("resize",handleResize);
     return ()=> window.removeEventListener("resize",handleResize);
   },[]);
+
+    useEffect(() => {
+  if (!search) {
+    setSuggestions([]);
+    return;
+  }
+
+
+
+  const delay = setTimeout(async () => {
+    try {
+      setSearchLoading(true);
+
+      const token = localStorage.getItem("ownerToken");
+
+      const res = await fetch(
+        `http://localhost:7600/ilba/search-products/${businessCode}?q=${search}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setSuggestions(data.products);
+        setShowSuggestions(true);
+      }
+    } catch (err) {
+      console.log("search error",err);
+    } finally {
+      setSearchLoading(false);
+    }
+  }, 350);   //  debounce (Google uses ~300ms)
+
+  return () => clearTimeout(delay);
+}, [search, businessCode]);
+
   /* ================= OPEN PRODUCT ================= */
   const openProductDrawer = async (productCode) => {
     try {
@@ -182,6 +264,53 @@ const BusinessDashboard = () => {
     }
   };
 
+
+ const fetchCustomers = async () => {
+  try {
+    setCustomerModal(true);
+    setCustomerLoading(true);
+    setCustomerError("");
+
+    const token = localStorage.getItem("ownerToken");
+
+    const res = await fetch(
+      `http://localhost:7600/ilba/getCustomerinfo/${businessCode}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    const data = await res.json();
+
+    if (res.ok && data.status === "success") {
+      setCustomers(data.customers);
+    } else {
+      setCustomerError(data.message || "Failed to fetch customers");
+    }
+  } catch (err) {
+    setCustomerError("Server not reachable",err);
+  } finally {
+    setCustomerLoading(false);
+  }
+};
+
+
+
+const handleSelectProduct = (product) => {
+  setSearch(product.productName);
+  setSuggestions([]);
+  setHighlightedProduct(product._id);
+  setCurrentPage(1);
+  setFilterProduct(product);
+  setTimeout(() => {
+    document
+      .getElementById(`product-${product._id}`)
+      ?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, 100);
+};
+
   if (loading)
     return (
       <div className="center">
@@ -191,6 +320,37 @@ const BusinessDashboard = () => {
     );
 
   if (error) return <p className="error">{error}</p>;
+
+const indexOfLastProduct = currentPage*productsPerPage;
+const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
+
+const currentProducts  = filteredProduct?[filteredProduct] : analytics?.products?.slice(indexOfFirstProduct,indexOfLastProduct) || [];
+console.log(currentProducts)
+const totalPages = Math.ceil((analytics?.products?.length || 0) / productsPerPage)
+
+console.log(analytics?.products);
+
+// const filteredProducts =
+//   analytics?.products?.filter((p) => {
+//     if (!p?.productName) return false;
+
+//     return p.productName
+//       .toLowerCase()
+//       .includes(search?.toLowerCase() || "");
+//   }) || [];
+
+// const indexOfLastProduct = currentPage * productsPerPage;
+// const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
+
+// const currentProducts = filteredProducts.slice(
+//   indexOfFirstProduct,
+//   indexOfLastProduct
+// );
+
+// const totalPages = Math.ceil(
+//   filteredProducts.length / productsPerPage
+// );
+
 
   return (
     <div className="dashboardLayout">
@@ -278,15 +438,73 @@ const BusinessDashboard = () => {
             <p>Total Products</p>
             <h2>{analytics?.products?.length || 0}</h2>
           </div>
+          <div className="statCard green" onClick={fetchCustomers} style={{cursor:"pointer"}}>
+          <p>Active Customers</p>
+          <h2>{activeCustomerCount}</h2>
+</div>
         </div>
 
-        <h2 className="sectionTitle">Inventory</h2>
+        {/* <h2 className="sectionTitle">Inventory</h2> */}
+        
+        <div className="inventoryHeader">
+  <h2 className="sectionTitle">Inventory</h2>
+{filteredProduct && (
+  <button
+    className="backInventoryBtn"
+    onClick={() => {
+      setFilterProduct(null);
+      setSearch("");
+    }}
+  >
+    ← Back to Full Inventory
+  </button>
+)}
+
+
+  <div className="searchBox">
+    <input
+      type="text"
+      placeholder="Search product..."
+      value={search}
+      onChange={(e) => setSearch(e.target.value)}
+      onFocus={() => setShowSuggestions(true)}
+      onBlur={() => setTimeout(()=>setShowSuggestions(false),200)}
+    />
+
+    {showSuggestions && suggestions.length > 0 && (
+      <div className="suggestions">
+        {suggestions.map((p) => (
+         <div
+  key={p._id}
+  className="suggestionItem"
+  onClick={() => handleSelectProduct(p)}
+>
+  <div className="suggestionLeft">
+    <div className="productDot"></div>
+    <div className="productInfo">
+      <div className="productName">{p.productName}</div>
+      <div className="productMeta">Inventory item</div>
+    </div>
+  </div>
+
+  <div className="stockBadge">
+    {p.stock} left
+  </div>
+</div>
+        ))}
+      </div>
+    )}
+  </div>
+</div>
 
         <div className="productGrid">
-          {analytics?.products?.map((p, i) => (
+          
+          {currentProducts.map((p, i) => (
+            
             <motion.div
-              key={i}
-              className="productCard"
+              key={p.productcode}
+              className={`productCard ${highlightedProduct === p._id? "highlightCard":""}`}
+              id={`product-${p._id}`}
               whileHover={{ y: -5 }}
               onClick={() => openProductDrawer(p)}
             >
@@ -298,27 +516,114 @@ const BusinessDashboard = () => {
                   predictRestock(p);
                 }}
               >
-                {predictingProduct === p ? "Analyzing..." : "🔮 Predict Restock"}
+                {predictingProduct === p ? (
+  <span className="thinking">
+    <span className="dot"></span>
+    <span className="dot"></span>
+    <span className="dot"></span>
+    AI Thinking
+  </span>
+) : "🔮 Predict Restock"}
               </button>
             </motion.div>
           ))}
         </div>
 
-        <AnimatePresence>
-          {prediction && (
-            <motion.div
-              className="predictionPanel"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
+        {!filteredProduct && totalPages > 1 && (
+  <div className="pagination">
+    <button
+      disabled={currentPage === 1}
+      onClick={() => setCurrentPage(prev => prev - 1)}
+    >
+      ⬅ Prev
+    </button>
+
+    {[...Array(totalPages)].map((_, index) => (
+      <button
+        key={index}
+        className={currentPage === index + 1 ? "activePage" : ""}
+        onClick={() => setCurrentPage(index + 1)}
+      >
+        {index + 1}
+      </button>
+    ))}
+
+    <button
+      disabled={currentPage === totalPages}
+      onClick={() => setCurrentPage(prev => prev + 1)}
+    >
+      Next ➡
+    </button>
+  </div>
+)}
+
+<AnimatePresence>
+  {prediction && (
+    <>
+      {/* Dark overlay */}
+      <div
+        className="modalBackdrop"
+        onClick={() => setPrediction(null)}
+      />
+
+      {/* Centering wrapper */}
+      <div className="aiWrapper">
+        <motion.div
+          className="predictionPanel"
+          initial={{ opacity: 0, scale: 0.8, y: 40 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.7 }}
+          transition={{ type: "spring", stiffness: 120, damping: 12 }}
+        >
+          <div className="aiHeader">
+            <div className="aiOrb"></div>
+            <h3>AI Stock Intelligence</h3>
+
+            <button
+              className="aiClose"
+              onClick={() => setPrediction(null)}
             >
-              <h3>AI Prediction</h3>
-              <p><b>Product:</b> {prediction.product}</p>
-              <p>{prediction.result.message}</p>
-              <p>Stock: {prediction.result.currentStock}</p>
-            </motion.div>
-          )}
-        </AnimatePresence>
+              ✖
+            </button>
+          </div>
+
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+          >
+            <b>Product:</b> {prediction.product}
+          </motion.p>
+
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.7 }}
+          >
+            {prediction.result.message}
+          </motion.p>
+
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1 }}
+          >
+            <b>Current Stock:</b> {prediction.result.currentStock}
+          </motion.p>
+
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1.2 }}
+          >
+            <b>Expected 7 days restocking:</b>{" "}
+            {prediction.result.expectedConsumptionNext7Days.toFixed(2)}
+          </motion.p>
+        </motion.div>
+      </div>
+    </>
+  )}
+</AnimatePresence>
 
       </div>
 
@@ -374,6 +679,81 @@ const BusinessDashboard = () => {
           </>
         )}
       </AnimatePresence>
+
+
+        {/* <AnimatePresence>
+  {customerModal && (
+    <>
+      <div
+        className="modalBackdrop"
+        onClick={() => setCustomerModal(false)}
+      />
+
+      <motion.div
+        className="customerModal"
+        initial={{ scale: 0.7, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.7, opacity: 0 }}
+        transition={{ type: "spring", stiffness: 140, damping: 14 }}
+      >
+        <div className="customerHeader">
+          <h2>Active Customers</h2>
+          <button onClick={() => setCustomerModal(false)}>✖</button>
+        </div>
+
+        {customerLoading && <p>Loading customers...</p>}
+        {customerError && <p className="error">{customerError}</p>}
+
+        <div className="customerList">
+          {customers.map((c, index) => (
+            <div key={index} className="customerCard">
+              <h3>{c.Name}</h3>
+              <p>📞 {c.phoneNumber}</p>
+            </div>
+          ))}
+        </div>
+      </motion.div>
+    </>
+  )}
+</AnimatePresence> */}
+<AnimatePresence>
+  {customerModal && (
+    <>
+      <div
+        className="modalBackdrop"
+        onClick={() => setCustomerModal(false)}
+      />
+
+      <div className="customerModalWrapper">
+        <motion.div
+          className="customerModal"
+          initial={{ scale: 0.7, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0.7, opacity: 0 }}
+          transition={{ type: "spring", stiffness: 140, damping: 14 }}
+        >
+          <div className="customerHeader">
+          <h2>Active Customers</h2>
+          <button onClick={() => setCustomerModal(false)}>✖</button>
+        </div>
+
+        {customerLoading && <p>Loading customers...</p>}
+        {customerError && <p className="error">{customerError}</p>}
+
+        <div className="customerList">
+          {customers.map((c, index) => (
+            <div key={index} className="customerCard">
+              <h3>{c.Name}</h3>
+              <p>📞 {c.phoneNumber}</p>
+            </div>
+          ))}
+        </div>
+
+        </motion.div>
+      </div>
+    </>
+  )}
+</AnimatePresence>
 
       <AnimatePresence>
         {toast.show && (

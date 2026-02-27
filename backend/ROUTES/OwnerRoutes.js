@@ -11,4 +11,5 @@ router.route('/loginPayload').post(OwnerController.loginpayload);
 router.route('/BuisnessInfo/:BuisnessCode').get(AuthController.protectOwner,OwnerController.findBuisnessAnalytics);
 router.route('/Organisation_analytics/:OrganisationCode').get(AuthController.protectOwner,OwnerController.Organizationanalytics);
 router.route('/getActiveCustomers/:CreationCode').get(AuthController.protectOwner,OwnerController.getActiveCustomers);
+router.route('/getCustomerinfo/:BusinessCode').get(AuthController.protectOwner,OwnerController.getallCustomersofBusiness);
 module.exports = router;

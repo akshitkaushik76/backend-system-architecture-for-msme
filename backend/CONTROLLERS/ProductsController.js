@@ -151,7 +151,7 @@ exports.updateProduct = async(req,res,next)=>{
 
 exports.getProduct = async (req, res, next) => {
   try {
-    // 1️⃣ Read params safely
+    // 1️ Read params safely
     let { productCode, businessCode } = req.params;
 
     if (!productCode || !businessCode) {
@@ -161,17 +161,17 @@ exports.getProduct = async (req, res, next) => {
       });
     }
 
-    // 2️⃣ Clean the values (VERY IMPORTANT)
+    //  Clean the values (VERY IMPORTANT)
     productCode = productCode.trim();
     businessCode = businessCode.trim();
 
-    // 3️⃣ Case-insensitive search (prevents 'Maggi10' vs 'maggi10' issue)
+    //Case-insensitive search (prevents 'Maggi10' vs 'maggi10' issue)
     const product_info = await Product.findOne({
       productcode: { $regex: new RegExp(`^${productCode}$`, "i") },
       BuisnessCode: businessCode,
     });
 
-    // 4️⃣ If product not found
+    
     if (!product_info) {
       return res.status(404).json({
         status: "failure",
@@ -179,7 +179,7 @@ exports.getProduct = async (req, res, next) => {
       });
     }
 
-    // 5️⃣ Success
+    
     res.status(200).json({
       status: "success",
       product_info,
@@ -211,6 +211,35 @@ exports.getAllProduct = async(req,res,next)=>{
     }catch(error) {
         res.status(500).json({
             status:'failure',
+            error:error.message
+        })
+    }
+}
+
+
+exports.searchProducts = async(req,res,next)=>{
+    try{
+        const {businessCode} = req.params;
+        const {q} = req.query;
+
+        if(!q || q.trim() === "") {
+            return res.json({
+                status:'success',
+                products:[]
+            })
+        }
+        const products = await Product.find({
+            BuisnessCode:businessCode,
+            productName:{$regex: q,$options:"i"}
+        }).select("productName productcode quantity sellingPrice").limit(7);
+
+        res.json({
+            status:"success",
+            products
+        })
+    } catch(error) {
+        res.status(500).json({
+            status:"failure",
             error:error.message
         })
     }

@@ -105,6 +105,8 @@ await recordSaleTransaction({
     }
 }
 
+
+
 exports.findProfitperday = async(req,res,next)=>{
     try{
         const BuisnessCode = req.params.BuisnessCode;
@@ -131,6 +133,10 @@ exports.findProfitperday = async(req,res,next)=>{
         })
     }
 }
+
+
+
+
 exports.getSalesofBusiness = async(req,res,next)=>{
    try{
     const BusinessCode = req.params.BusinessCode;

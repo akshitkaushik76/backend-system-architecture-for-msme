@@ -18,7 +18,7 @@ const customer = new mongoose.Schema({
         type:String,
         required:[true,'please enter an email id'],
         validate:[validator.isEmail,'please enter a correct email id'],
-        
+        unique:true
         
     },
     phoneNumber:{

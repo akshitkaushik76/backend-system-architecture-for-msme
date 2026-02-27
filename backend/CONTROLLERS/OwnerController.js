@@ -394,3 +394,29 @@ exports.getActiveCustomers = async(req,res,next)=>{
         })
     }
 }
+exports.getallCustomersofBusiness = async(req,res,next)=>{
+    try{
+        const {BusinessCode} = req.params;
+        const customers = await Customer.find({EnrolledBusinesses:BusinessCode});
+        if( customers.length === 0) {
+            return res.status(404).json({
+                status:'failure',
+                message:'customer in this business does not exits'
+            })
+        }
+
+        res.status(200).json({
+            status:'success',
+            activeCustomers:customers.length,
+            customers
+        })
+
+
+    } catch(err) {
+        console.error("error",err);
+        res.status(500).json({
+            status:'failure',
+            error:err.message
+        })
+    }
+}
