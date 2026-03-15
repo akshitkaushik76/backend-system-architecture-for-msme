@@ -12,12 +12,16 @@ import CreditManager from "./pages/CreditManager";
 import CustomerLogin from "./pages/CustomerRegister";
 import BusinessSales from "./pages/BusinessSales";
 import LandingPage from "./pages/LandingPage";
+import CustomerLog from "./pages/CustomerLogin";
+import CustomerDashboard from "./pages/CustomerDashboard";
 function App() {
   return (
     <Routes>
       <Route path="/signupowner" element={<Signup />} />
       <Route path="/loginowner" element={<LoginOwner />} />
+      <Route path = "/logincustomer" element = {<CustomerLog/>}/>
       <Route path="/dashboard" element={<OwnerDashboard />} />
+      <Route path="/customer-dashboard" element={<CustomerDashboard />} />
       <Route path="/" element={<LandingPage />} />
       {/* Business Dashboard */}
       <Route

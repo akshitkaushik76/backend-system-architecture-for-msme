@@ -39,7 +39,9 @@ exports.loginCustomer =   async(req,res,next)=>{
       status:'success',
       message:'logged in successfully',
       
-      token
+      token,
+      email:user.emailid,
+      phone:user.phoneNumber
     })
    }catch(error) {
     res.status(500).json({

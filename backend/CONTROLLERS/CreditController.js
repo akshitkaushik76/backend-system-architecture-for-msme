@@ -10,7 +10,9 @@ const Customer = require('./../MODELS/Customer');
 // const updateCustomerCreditAnalysis = require('./../ETL_controllers/CustomerCredit');
 const CreditSchema = require('./../MODELS/CreditSchema');
 const CreditCounter = require('./../MODELS/CounteSchema');
-
+const salesSchema = require('./../MODELS/SalesSchema');
+const SalesSchema = require('./../MODELS/SalesSchema');
+const {recordSaleTransaction} = require('./../ETL_controllers/productSaleETL');
 const CreateCode = async (OrganisationCode) => {
 //   const now = new Date();
 
@@ -58,7 +60,8 @@ const computeSettletime = ()=>{
           const now = new Date();
           const hour = now.getHours().toString().padStart(2,'0');
           const min = now.getMinutes().toString().padStart(2,'0');
-          return `${hour}:${min}`;
+          const sec = now.getSeconds().toString().padStart(2,'0');
+          return `${hour}:${min}:${sec}`;
         
 }
 const computeSettleDate = ()=>{
@@ -264,7 +267,7 @@ exports.createCredits = async(req,res,next)=>{
           message:`the Customer with the phone number ${phoneNumber} does not exist`
         })
       }
-      
+      let salesdata;
        const updatedProduct = await Products.findOneAndUpdate({
         productcode:productCode,
         BuisnessCode:BuisnessCode,
@@ -275,10 +278,33 @@ exports.createCredits = async(req,res,next)=>{
        {new:true, runValidators:true}
       )
       if(!updatedProduct) {
+        salesdata = 'not enough stock to store sale'
         return res.status(400).json({
           status:'fail',
           message:'not enough stock available'
         })
+      }
+      else{
+        const salesdata = await SalesSchema.create({
+          OrganisationCode:OrganizationCode,
+          BuisnessCode:BuisnessCode,
+          productCode:productCode,
+          quantity:quantity,
+          totalCost:product_data.quantity*product_data.sellingPrice,
+          date:computeSettleDate(),
+          time:computeSettletime(),
+          profitMade:quantity*(product_data.sellingPrice - product_data.costPrice)
+        })
+        console.log("updating sales transaction")
+       await recordSaleTransaction({
+        productCode:productCode,
+        unitPrice: Number(product_data.sellingPrice),
+        quantity: Number(quantity),
+        OrganisationCode:OrganizationCode,
+        BuisnessCode,
+        stockBefore:Number(product_data.quantity),
+        stockAfter: Number(updatedProduct.quantity)
+       })
       }
       stockReduce = true;
       const totalCredits = await getTotalCreditsSofar(BuisnessCode,phoneNumber);
@@ -347,7 +373,8 @@ exports.createCredits = async(req,res,next)=>{
       }
     res.status(201).json({
       status:'success',
-      credit
+      credit,
+      savedSale:salesdata
     })
     }catch(error) {
       if(stockReduce) {

@@ -38,7 +38,7 @@ const LandingPage = () => {
 
             <button
               className="customerBtn"
-              onClick={() => navigate("/customer-login")}
+              onClick={() => navigate("/logincustomer")}
             >
               👤 Customer Login
             </button>

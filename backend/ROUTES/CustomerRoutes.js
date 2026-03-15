@@ -6,6 +6,7 @@ router.route('/CustomerRegister').post(CustomerController.registerCustomer);
 router.route('/getCustomer/:phoneNumber').get(AuthController.protectOwner,CustomerController.getCustomers);
 router.route('/updateCustomer/:phoneNumber').patch(AuthController.protectCustomer,CustomerController.patchCustomer);
 router.route('/newSubscription/:phoneNumber').patch(AuthController.protectCustomer,CustomerController.SubscribetonewOrganisation);
-
-
+router.route('/getCreditinfo/:OrganisationCode/:BuisnessCode/:phoneNumber').get(AuthController.protectCustomer,CustomerController.getCreditinfo);
+router.route('/getOrganisations/:emailid').get(AuthController.protectCustomer,CustomerController.getOrganisationCode);
+router.route('/getBusinesses/:OrganisationCode').get(AuthController.protectCustomer,CustomerController.getBusinessesofOrganisation);
 module.exports = router;

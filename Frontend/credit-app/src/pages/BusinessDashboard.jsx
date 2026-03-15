@@ -1,8 +1,9 @@
 import "./dashboard.css";
-import { useEffect, useState } from "react";
+import { useEffect, useState,useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-
+import axios from "axios"
+ 
 const BusinessDashboard = () => {
   const { businessCode } = useParams();
   const navigate = useNavigate();
@@ -46,11 +47,39 @@ const BusinessDashboard = () => {
   const [currentPage,setCurrentPage] = useState(1);
   const productsPerPage = 10;
   const [highlightedProduct,setHighlightedProduct] = useState(null);
-  const [filteredProduct,setFilterProduct] = useState(null);
+  const mainContentRef = useRef(null);
+  // const [filteredProduct,setFilterProduct] = useState(null);
 
 
-  const owner = JSON.parse(localStorage.getItem("ownerData"));
-  const organisationCode = owner?.OrganisationCode;
+const [salesModal, setSalesModal] = useState(false);
+const [salesDate, setSalesDate] = useState("");
+const [salesData, setSalesData] = useState([]);
+const [salesLoading, setSalesLoading] = useState(false);
+const [salesError, setSalesError] = useState("");
+
+
+const [profitModal, setProfitModal] = useState(false);
+const [profitDate, setProfitDate] = useState("");
+const [profitValue, setProfitValue] = useState(null);
+const [profitLoading, setProfitLoading] = useState(false);
+const [profitError, setProfitError] = useState("");
+
+const [creditModal, setCreditModal] = useState(false);
+const [phoneNumber, setPhoneNumber] = useState("");
+const [creditInfo, setCreditInfo] = useState(null);
+const [creditError, setCreditError] = useState("");
+const [creditLoading, setCreditLoading] = useState(false);
+
+const [addCreditModal, setAddCreditModal] = useState(false);
+const [addPhoneNumber, setAddPhoneNumber] = useState("");
+const [addProductCode, setAddProductCode] = useState("");
+const [addQuantity, setAddQuantity] = useState("");
+const [addCreditError, setAddCreditError] = useState("");
+const [addCreditSuccess, setAddCreditSuccess] = useState("");
+const [addCreditLoading, setAddCreditLoading] = useState(false);  
+
+const owner = JSON.parse(localStorage.getItem("ownerData"));
+const organisationCode = owner?.OrganisationCode;
 
   /* ================= FETCH DASHBOARD ================= */
   useEffect(() => {
@@ -129,6 +158,8 @@ useEffect(() => {
     setSuggestions([]);
     return;
   }
+    
+  
 
 
 
@@ -198,6 +229,8 @@ useEffect(() => {
   const handleChange = (e) => {
     setEditData({ ...editData, [e.target.name]: e.target.value });
   };
+
+
 
   /* ================= UPDATE PRODUCT ================= */
   const updateProduct = async () => {
@@ -296,20 +329,335 @@ useEffect(() => {
   }
 };
 
+//get sales method->
+const formatDate = (dateStr) => {
+  const [year, month, day] = dateStr.split("-");
+  return `${day}/${month}/${year}`;
+};
+
+const fetchSales = async (e) => {
+  e.preventDefault();
+
+  if (!salesDate) return;
+
+  setSalesLoading(true);
+  setSalesError("");
+  setSalesData([]);
+
+  try {
+    const token = localStorage.getItem("ownerToken");
+
+    const res = await fetch(
+      `http://localhost:7600/ilba/getSales/${businessCode}?date=${formatDate(salesDate)}`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+
+    const data = await res.json();
+
+    if (res.ok) {
+      setSalesData(data.result || []);
+    } else {
+      setSalesError(data.message || "No sales found");
+    }
+  } catch {
+    setSalesError("Server error");
+  } finally {
+    setSalesLoading(false);
+  }
+};
 
 
+
+const formatDates = (dateStr) => {
+  const [year, month, day] = dateStr.split("-");
+  return `${day}/${month}/${year}`;
+};
+
+const fetchProfit = async (e) => {
+  e.preventDefault();
+  if (!profitDate) return;
+
+  setProfitLoading(true);
+  setProfitError("");
+  setProfitValue(null);
+
+  try {
+    const token = localStorage.getItem("ownerToken");
+
+    const res = await axios.get(
+      `http://localhost:7600/ilba/profitThisDay/${organisationCode}/${businessCode}`,
+      {
+        params: { date: formatDates(profitDate) },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    setProfitValue(res.data.profit);
+  } catch (err) {
+    setProfitError(
+      err.response?.data?.message || "Failed to fetch profit"
+    );
+  } finally {
+    setProfitLoading(false);
+  }
+};
+
+const fetchCredit = async () => {
+  if (!phoneNumber) {
+    setCreditError("Please enter a phone number");
+    return;
+  }
+
+  setCreditLoading(true);
+  setCreditError("");
+  setCreditInfo(null);
+
+  try {
+    const token = localStorage.getItem("ownerToken");
+
+    const res = await fetch(
+      `http://localhost:7600/ilba/getCreditphno/${organisationCode}/${businessCode}?phoneNumber=${phoneNumber}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    const data = await res.json();
+
+    if (res.ok && data.status === "success") {
+      setCreditInfo(data.creditinfo);
+    } else {
+      setCreditError(data.message || "No credit info found");
+    }
+  } catch (err) {
+    setCreditError(err.message || "Server error");
+  } finally {
+    setCreditLoading(false);
+  }
+};
+
+const addCredit = async () => {
+  if (!addPhoneNumber || !addProductCode || !addQuantity) {
+    setAddCreditError("All fields are required");
+    return;
+  }
+
+  setAddCreditLoading(true);
+  setAddCreditError("");
+  setAddCreditSuccess("");
+
+  try {
+    const token = localStorage.getItem("ownerToken");
+
+    const res = await fetch(
+      `http://localhost:7600/ilba/addCredit/${organisationCode}/${businessCode}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          phoneNumber: addPhoneNumber,
+          productCode: addProductCode,
+          quantity: addQuantity,
+        }),
+      }
+    );
+
+    const data = await res.json();
+
+    if (res.ok && data.status === "success") {
+      setAddCreditSuccess("Credit added successfully!");
+      setAddPhoneNumber("");
+      setAddProductCode("");
+      setAddQuantity("");
+    } else {
+      setAddCreditError(data.message || "Failed to add credit");
+    }
+  } catch (err) {
+    setAddCreditError(err.message || "Server error");
+  } finally {
+    setAddCreditLoading(false);
+  }
+};
+
+
+// const handleSelectProduct = (product) => {
+//   setSearch(product.productName);
+//   setSuggestions([]);
+//   setHighlightedProduct(product._id);
+//   setCurrentPage(1);
+//   setFilterProduct(product.productcode);
+//   setTimeout(() => {
+//     document
+//       .getElementById(`product-${product._id}`)
+//       ?.scrollIntoView({ behavior: "smooth", block: "center" });
+//   }, 100);
+// };
+// const handleSelectProduct = (product) => {
+//   const productCode = product.productcode;
+
+//   setSearch(product.productName);
+//   setSuggestions([]);
+//   setShowSuggestions(false);
+
+//   const allProducts = analytics?.products || [];
+
+//   const index = allProducts.findIndex(p => p === productCode);
+
+//   if (index === -1) return;
+
+//   const page = Math.floor(index / productsPerPage) + 1;
+
+//   setCurrentPage(page);
+//   setHighlightedProduct(productCode);
+
+// setTimeout(() => {
+//   const container = mainContentRef.current;
+//   const element = document.getElementById(`product-${productCode}`);
+
+//   if (!container || !element) return;
+
+//   const containerRect = container.getBoundingClientRect();
+//   const elementRect = element.getBoundingClientRect();
+
+//   const offset = elementRect.top - containerRect.top - 100;
+
+//   container.scrollBy({
+//     top: offset,
+//     behavior: "smooth",
+//   });
+// }, 300);
+// };
+
+// const handleSelectProduct = (product) => {
+//   const productCode = product.productcode;
+
+//   setSearch(product.productName);
+//   setSuggestions([]);
+//   setShowSuggestions(false);
+
+//   const allProducts = analytics?.products || [];
+//   const index = allProducts.findIndex(p => p === productCode);
+//   if (index === -1) return;
+
+//   const page = Math.floor(index / productsPerPage) + 1;
+
+//   setCurrentPage(page);
+//   setHighlightedProduct(productCode);
+
+//   setTimeout(() => {
+//     const element = document.getElementById(`product-${productCode}`);
+//     element?.scrollIntoView({
+//       behavior: "smooth",
+//       block: "center",
+//     });
+//   }, 300);
+
+//   setTimeout(() => {
+//     setHighlightedProduct(null);
+//   }, 2000);
+// };
+
+// const handleSelectProduct = (product) => {
+//   const productCode = product.productcode;
+  
+//   setSearch(product.productName);
+//   setSuggestions([]);
+//   setShowSuggestions(false);
+
+//   const allProducts = analytics?.products || [];
+//   const index = allProducts.findIndex(p => p === productCode);
+//   if (index === -1) return;
+
+//   const page = Math.floor(index / productsPerPage) + 1;
+
+//   setCurrentPage(page);
+//   setHighlightedProduct(productCode);
+//   console.log("Clicked productCode:", productCode);
+// console.log("All products:", analytics?.products);
+// };
 const handleSelectProduct = (product) => {
+  const productCode = product.productcode;
+
   setSearch(product.productName);
   setSuggestions([]);
-  setHighlightedProduct(product._id);
-  setCurrentPage(1);
-  setFilterProduct(product);
-  setTimeout(() => {
-    document
-      .getElementById(`product-${product._id}`)
-      ?.scrollIntoView({ behavior: "smooth", block: "center" });
-  }, 100);
+  setShowSuggestions(false);
+
+  const allProducts = analytics?.products || [];
+
+  const index = allProducts.findIndex(
+    p => String(p).trim().toLowerCase() === 
+         String(productCode).trim().toLowerCase()
+  );
+
+  console.log("Index found:", index);
+
+  if (index === -1) {
+    console.log("Product not found in analytics.products");
+    return;
+  }
+
+  const page = Math.floor(index / productsPerPage) + 1;
+
+  setCurrentPage(page);
+  console.log("Setting page to:", page);
+   
+  
+  setHighlightedProduct(productCode);
 };
+
+// useEffect(() => {
+//   if (!highlightedProduct) return;
+
+//   const element = document.getElementById(`product-${highlightedProduct}`);
+
+//   if (element) {
+//     element.scrollIntoView({
+//       behavior: "smooth",
+//       block: "center",
+//     });
+//   }
+
+//   const timer = setTimeout(() => {
+//     setHighlightedProduct(null);
+//   }, 2000);
+
+//   return () => clearTimeout(timer);
+// }, [currentPage, highlightedProduct]);
+
+useEffect(() => {
+  if (!highlightedProduct) return;
+
+  const timeout = setTimeout(() => {
+    const element = document.getElementById(`product-${highlightedProduct}`);
+    console.log("Trying to scroll to:", highlightedProduct);
+    console.log("Element exists:", element);
+
+    if (element) {
+      element.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }
+  }, 100); // small delay to wait for DOM render
+
+  const clearHighlight = setTimeout(() => {
+    setHighlightedProduct(null);
+  }, 2000);
+
+  return () => {
+    clearTimeout(timeout);
+    clearTimeout(clearHighlight);
+  };
+}, [currentPage, highlightedProduct]);
 
   if (loading)
     return (
@@ -324,8 +672,10 @@ const handleSelectProduct = (product) => {
 const indexOfLastProduct = currentPage*productsPerPage;
 const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
 
-const currentProducts  = filteredProduct?[filteredProduct] : analytics?.products?.slice(indexOfFirstProduct,indexOfLastProduct) || [];
-console.log(currentProducts)
+// const currentProducts  = filteredProduct?[filteredProduct] : analytics?.products?.slice(indexOfFirstProduct,indexOfLastProduct) || [];
+const currentProducts =
+  analytics?.products?.slice(indexOfFirstProduct,indexOfLastProduct) || [];
+ 
 const totalPages = Math.ceil((analytics?.products?.length || 0) / productsPerPage)
 
 console.log(analytics?.products);
@@ -370,26 +720,20 @@ console.log(analytics?.products);
     🏠 Home
   </button>
 
-  <button onClick={() => navigate(`/business/${businessCode}/sales`)}>
+  <button onClick={() => setSalesModal(true)}>
     📊 Sales
   </button>
 
-  <button onClick={() =>
-    navigate(`/business/${organisationCode}/${businessCode}/profit-per-day`)
-  }>
+  <button onClick={() =>setProfitModal(true)}>
     📈 Profit
   </button>
 
-  <button onClick={() =>
-    navigate(`/business/${organisationCode}/${businessCode}/credit-manager`)
-  }>
+  <button onClick={() =>setCreditModal(true)}>
     💳 Credit Manager
   </button>
 
   {/* ✅ CORRECT */}
-  <button onClick={() =>
-    navigate(`/add-credit/${organisationCode}/${businessCode}`)
-  }>
+  <button onClick={()=> setAddCreditModal(true)}>
     ➕ Add Credit
   </button>
 
@@ -416,7 +760,7 @@ console.log(analytics?.products);
 </motion.div>
 
       {/* MAIN */}
-      <div className="mainContent">
+      <div className="mainContent" ref={mainContentRef}>
 
         <div className="topbar">
           <button
@@ -448,7 +792,7 @@ console.log(analytics?.products);
         
         <div className="inventoryHeader">
   <h2 className="sectionTitle">Inventory</h2>
-{filteredProduct && (
+{/* {filteredProduct && (
   <button
     className="backInventoryBtn"
     onClick={() => {
@@ -458,7 +802,7 @@ console.log(analytics?.products);
   >
     ← Back to Full Inventory
   </button>
-)}
+)} */}
 
 
   <div className="searchBox">
@@ -502,9 +846,9 @@ console.log(analytics?.products);
           {currentProducts.map((p, i) => (
             
             <motion.div
-              key={p.productcode}
-              className={`productCard ${highlightedProduct === p._id? "highlightCard":""}`}
-              id={`product-${p._id}`}
+              key={p}
+              className={`productCard ${highlightedProduct === p ? "highlightCard" : ""}`}
+              id={`product-${p}`}
               whileHover={{ y: -5 }}
               onClick={() => openProductDrawer(p)}
             >
@@ -529,7 +873,7 @@ console.log(analytics?.products);
           ))}
         </div>
 
-        {!filteredProduct && totalPages > 1 && (
+        { totalPages > 1 && (
   <div className="pagination">
     <button
       disabled={currentPage === 1}
@@ -767,6 +1111,281 @@ console.log(analytics?.products);
           </motion.div>
         )}
       </AnimatePresence>
+
+<AnimatePresence>
+  {salesModal && (
+    <>
+      {/* Overlay */}
+      <div
+        className="modalBackdrop"
+        onClick={() => setSalesModal(false)}
+      />
+
+      {/* Center Wrapper */}
+      <div className="salesModalWrapper">
+        <motion.div
+          className="salesModal"
+          initial={{ scale: 0.7, opacity: 0, y: 50 }}
+          animate={{ scale: 1, opacity: 1, y: 0 }}
+          exit={{ scale: 0.7, opacity: 0 }}
+          transition={{ type: "spring", stiffness: 140, damping: 14 }}
+        >
+          <div className="salesHeader">
+            <h2>📊 Sales Report</h2>
+            <button onClick={() => setSalesModal(false)}>✖</button>
+          </div>
+
+          <form onSubmit={fetchSales}>
+            <input
+              type="date"
+              value={salesDate}
+              onChange={(e) => setSalesDate(e.target.value)}
+              required
+            />
+
+            <button disabled={salesLoading}>
+              {salesLoading ? "Loading..." : "Get Sales"}
+            </button>
+          </form>
+
+          {salesError && <p className="error">{salesError}</p>}
+
+          <div className="salesList">
+            {salesData.map((s, i) => (
+              <div key={i} className="saleCard">
+                <p><b>Product:</b> {s.productCode}</p>
+                <p><b>Quantity:</b> {s.quantity}</p>
+                <p><b>Revenue:</b> ₹{s.totalCost}</p>
+                <p><b>Profit:</b> ₹{s.profitMade}</p>
+              </div>
+            ))}
+          </div>
+        </motion.div>
+      </div>
+    </>
+  )}
+</AnimatePresence>
+<AnimatePresence>
+  {profitModal && (
+    <>
+      <div
+        className="salesModalWrapper"
+        onClick={() => setProfitModal(false)}
+      />
+
+      <div className="salesModalWrapper">
+        <motion.div
+          className="salesModal"
+          initial={{ scale: 0.7, opacity: 0, y: 40 }}
+          animate={{ scale: 1, opacity: 1, y: 0 }}
+          exit={{ scale: 0.7, opacity: 0 }}
+          transition={{ type: "spring", stiffness: 140, damping: 14 }}
+        >
+          <div className="salesHeader">
+            <h2>📈 Profit Per Day</h2>
+            <button onClick={() => setProfitModal(false)}>
+              ×
+            </button>
+          </div>
+
+          <form onSubmit={fetchProfit}>
+            <input
+              type="date"
+              value={profitDate}
+              onChange={(e) => setProfitDate(e.target.value)}
+              required
+            />
+
+            <button disabled={profitLoading}>
+              {profitLoading ? "Calculating..." : "Get Profit"}
+            </button>
+          </form>
+
+          {profitValue !== null && (
+            <div className="saleCard" style={{ marginTop: "20px" }}>
+              💰 Profit on <b>{profitDate}</b> :
+              <h3 style={{ marginTop: "10px", color: "#2dd4bf" }}>
+                ₹{profitValue}
+              </h3>
+            </div>
+          )}
+
+          {profitError && (
+            <p style={{ color: "#f87171", marginTop: "12px" }}>
+              {profitError}
+            </p>
+          )}
+        </motion.div>
+      </div>
+    </>
+  )}
+</AnimatePresence>
+
+<AnimatePresence>
+  {creditModal && (
+    <>
+      <div
+        className="salesModalWrapper"
+        onClick={() => setCreditModal(false)}
+      />
+
+      <div className="salesModalWrapper">
+        <motion.div
+          className="salesModal"
+          initial={{ scale: 0.7, opacity: 0, y: 40 }}
+          animate={{ scale: 1, opacity: 1, y: 0 }}
+          exit={{ scale: 0.7, opacity: 0 }}
+          transition={{ type: "spring", stiffness: 140, damping: 14 }}
+        >
+          <div className="salesHeader">
+            <h2>💳 Credit Manager</h2>
+            <button onClick={() => setCreditModal(false)}>×</button>
+          </div>
+
+          <div style={{ marginTop: "10px" }}>
+            <input
+              type="text"
+              placeholder="Enter customer phone number"
+              value={phoneNumber}
+              onChange={(e) => setPhoneNumber(e.target.value)}
+            />
+
+            <button
+              onClick={fetchCredit}
+              disabled={creditLoading}
+              style={{ marginTop: "10px" }}
+            >
+              {creditLoading ? "Fetching..." : "Get Credit Info"}
+            </button>
+          </div>
+
+          {creditError && (
+            <p style={{ color: "#f87171", marginTop: "12px" }}>
+              {creditError}
+            </p>
+          )}
+
+          {creditInfo && creditInfo.length > 0 && (
+            <div style={{ marginTop: "20px", overflowX: "auto" }}>
+              <table
+                style={{
+                  width: "100%",
+                  borderCollapse: "collapse",
+                  fontSize: "14px",
+                }}
+              >
+                <thead>
+                  <tr style={{ background: "#1f2937", color: "#fff" }}>
+                    <th style={{ padding: "8px" }}>Product</th>
+                    <th style={{ padding: "8px" }}>Qty</th>
+                    <th style={{ padding: "8px" }}>Total</th>
+                    <th style={{ padding: "8px" }}>Status</th>
+                    <th style={{ padding: "8px" }}>Issued</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {creditInfo.map((c) => (
+                    <tr key={c._id}>
+                      <td style={{ padding: "8px" }}>
+                        {c.product || c.productcode}
+                      </td>
+                      <td style={{ padding: "8px" }}>
+                        {c.quantity}
+                      </td>
+                      <td style={{ padding: "8px" }}>
+                        ₹{c.totalCost}
+                      </td>
+                      <td style={{ padding: "8px" }}>
+                        {c.status}
+                      </td>
+                      <td style={{ padding: "8px" }}>
+                        {c.issued || "-"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {creditInfo && creditInfo.length === 0 && (
+            <p style={{ marginTop: "12px" }}>
+              No credit records found.
+            </p>
+          )}
+        </motion.div>
+      </div>
+    </>
+  )}
+</AnimatePresence>
+<AnimatePresence>
+  {addCreditModal && (
+    <>
+      <div
+        className="salesModalWrapper"
+        onClick={() => setAddCreditModal(false)}
+      />
+
+      <div className="salesModalWrapper">
+        <motion.div
+          className="salesModal"
+          initial={{ scale: 0.7, opacity: 0, y: 40 }}
+          animate={{ scale: 1, opacity: 1, y: 0 }}
+          exit={{ scale: 0.7, opacity: 0 }}
+          transition={{ type: "spring", stiffness: 140, damping: 14 }}
+        >
+          <div className="salesHeader">
+            <h2>➕ Add Credit</h2>
+            <button onClick={() => setAddCreditModal(false)}>×</button>
+          </div>
+
+          <div style={{ marginTop: "15px", display: "flex", flexDirection: "column", gap: "12px" }}>
+            <input
+              type="text"
+              placeholder="Customer Phone Number"
+              value={addPhoneNumber}
+              onChange={(e) => setAddPhoneNumber(e.target.value)}
+            />
+
+            <input
+              type="text"
+              placeholder="Product Code"
+              value={addProductCode}
+              onChange={(e) => setAddProductCode(e.target.value)}
+            />
+
+            <input
+              type="number"
+              placeholder="Quantity"
+              value={addQuantity}
+              onChange={(e) => setAddQuantity(e.target.value)}
+            />
+
+            <button
+              onClick={addCredit}
+              disabled={addCreditLoading}
+              style={{ marginTop: "5px" }}
+            >
+              {addCreditLoading ? "Adding..." : "Add Credit"}
+            </button>
+          </div>
+
+          {addCreditError && (
+            <p style={{ color: "#f87171", marginTop: "12px" }}>
+              {addCreditError}
+            </p>
+          )}
+
+          {addCreditSuccess && (
+            <p style={{ color: "#34d399", marginTop: "12px" }}>
+              {addCreditSuccess}
+            </p>
+          )}
+        </motion.div>
+      </div>
+    </>
+  )}
+</AnimatePresence>
 
     </div>
   );

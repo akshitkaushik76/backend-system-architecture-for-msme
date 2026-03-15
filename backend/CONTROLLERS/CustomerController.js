@@ -4,7 +4,7 @@ const Owner = require('./../MODELS/Owner');
 const transporter = require('./../Utils/email')
 const Business = require('./../MODELS/BusinessSchema');
 const jwt = require('jsonwebtoken');
-
+const CreditSchema = require('./../MODELS/CreditSchema');
 // exports.registerCustomer = async(req,res,next)=>{
 //    try{
 //     const {OrganisationCode,Name,emailid,phoneNumber,password,confirmpassword} = req.body;
@@ -340,4 +340,93 @@ exports.SubscribetonewOrganisation = async(req,res,next)=>{
         message:error.message
     })
    }
+}
+
+
+exports.getCreditinfo = async(req,res,next)=>{
+    try{
+        const phoneNumber = req.params.phoneNumber;
+        const OrganisationCode = req.params.OrganisationCode;
+        const BuisnessCode = req.params.BuisnessCode;
+        const creditinfo = await CreditSchema.find({phoneNumber,OrganisationCode,BuisnessCode});
+        if(!creditinfo || creditinfo.length === 0) {
+            return res.status(404).json({
+                status:'failure',
+                message:'the credit record were not found'
+            })
+        }
+        let settledCredit = [];
+        let not_settledCredit = [];
+        let partially_settled = [];
+        creditinfo.forEach((record)=>{
+            if(record.status === 'unpaid')  {
+                not_settledCredit.push(record);
+            }
+            else if(record.status === 'partially-paid') {
+                partially_settled.push(record);
+            }
+            else if(record.status === 'settled') {
+                settledCredit.push(record);
+            }
+        })
+        res.status(200).json({
+            status:'success',
+            settledCredit,
+            not_settledCredit,
+            partially_settled
+        })
+    } catch(error) {
+        console.error("error ->",error);
+        res.status(500).json({
+            status:'failure',
+            message:error.message
+        })
+    }
+}
+
+exports.getOrganisationCode = async(req,res,next)=>{
+    try{
+        const emailid = req.params.emailid;
+        const customer = await Customer.findOne({emailid});
+        if(!customer) {
+            return res.status(404).json({
+                status:'failure',
+                message:'customer doesnot exist'
+            })
+        }
+        const organisations = customer.OrganisationCode;
+        res.status(200).json({
+            status:'success',
+            organisations
+        })
+    } catch(error) {
+        console.error("error->",error)
+        res.status(500).json({
+            status:'failure',
+            error:error.message
+        })
+    }
+}
+
+exports.getBusinessesofOrganisation = async(req,res,next)=>{
+    try{
+        const OrganisationCode = req.params.OrganisationCode;
+        const Buisinesses = await Business.find({OrganisationCode});
+        if(!Buisinesses || Buisinesses.length === 0) {
+            return res.status(404).json({
+                status:'failure',
+                message:'no businesses exist for the organisation'
+            })
+        }
+        res.status(200).json({
+            status:'success',
+            Buisinesses
+        })
+    } catch(error) {
+        console.error("error->",error);
+        res.status(500).json({
+            status:'failure',
+            error:error.message
+        })
+    }
 }
